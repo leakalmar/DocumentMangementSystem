@@ -3,26 +3,20 @@ package com.staffmate.StaffMateDocumentManagement.services;
 import com.staffmate.StaffMateDocumentManagement.content_extractors.ContentExtractor;
 import com.staffmate.StaffMateDocumentManagement.dtos.NewApplication;
 import com.staffmate.StaffMateDocumentManagement.models.Applicant;
+import com.staffmate.StaffMateDocumentManagement.models.Application;
 import com.staffmate.StaffMateDocumentManagement.models.CV;
 import com.staffmate.StaffMateDocumentManagement.models.CoverLetter;
-import com.staffmate.StaffMateDocumentManagement.repositories.ApplicantRepository;
-import com.staffmate.StaffMateDocumentManagement.repositories.CVRepository;
-import com.staffmate.StaffMateDocumentManagement.repositories.CoverLetterRepository;
+import com.staffmate.StaffMateDocumentManagement.repositories.ApplicationRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UploadService {
 
     @Autowired
-    private ApplicantRepository applicantRepository;
-
-    @Autowired
-    private CoverLetterRepository coverLetterRepository;
-
-    @Autowired
-    private CVRepository cvRepository;
+    private ApplicationRepository applicationRepository;
 
     @Autowired
     private ContentExtractor contentExtractor;
@@ -30,20 +24,30 @@ public class UploadService {
     @Autowired
     private ModelMapper modelMapper;
 
+    @Autowired
+    FileStorageService storageService;
+
     public void upload(NewApplication newApplication) {
         Applicant applicant = modelMapper.map(newApplication, Applicant.class);
-        applicantRepository.save(applicant);
         try {
             String cvContent = contentExtractor.extractContent(newApplication.getCv());
-            CV cv = new CV(applicant, cvContent);
-            cvRepository.save(cv);
+            CV cv = new CV(cvContent);
 
             String letterContent = contentExtractor.extractContent(newApplication.getLetter());
-            CoverLetter coverLetter = new CoverLetter(applicant, letterContent);
-            coverLetterRepository.save(coverLetter);
+            CoverLetter coverLetter = new CoverLetter(letterContent);
+
+            Application application = new Application(applicant, cv, coverLetter);
+            applicationRepository.save(application);
+
+            storageService.save(application.getApplicant().getFirstname(), application.getApplicant().getLastname(), newApplication.getCv());
+            storageService.save(application.getApplicant().getFirstname(), application.getApplicant().getLastname(), newApplication.getLetter());
         } catch (Exception ignored) {
 
         }
 
+    }
+
+    public Resource get(String fileName) {
+        return storageService.load("fileName");
     }
 }
