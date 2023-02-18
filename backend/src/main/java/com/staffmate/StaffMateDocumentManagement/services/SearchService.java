@@ -3,6 +3,7 @@ package com.staffmate.StaffMateDocumentManagement.services;
 import com.staffmate.StaffMateDocumentManagement.dtos.ComplexSearchDto;
 import com.staffmate.StaffMateDocumentManagement.dtos.ResultDto;
 import com.staffmate.StaffMateDocumentManagement.dtos.SearchFiledDto;
+import com.staffmate.StaffMateDocumentManagement.mappers.ResultMapper;
 import com.staffmate.StaffMateDocumentManagement.models.Application;
 import com.staffmate.StaffMateDocumentManagement.repositories.ApplicationRepository;
 import org.elasticsearch.common.unit.Fuzziness;
@@ -30,7 +31,7 @@ public class SearchService {
     @Autowired
     private ElasticsearchRestTemplate elasticsearchRestTemplate;
     @Autowired
-    private ApplicationRepository applicationRepository;
+    private ResultMapper resultMapper;
 
     public List<ResultDto> search(ComplexSearchDto complexSearchDto) {
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
@@ -46,9 +47,23 @@ public class SearchService {
                 queryBuilder.should(matchQuery);
             }
         }
-        return getApplications(queryBuilder, getHighlightBuilder(complexSearchDto));
+        return getApplications(queryBuilder, complexSearchDto);
     }
 
+    private List<ResultDto> getApplications(QueryBuilder queryBuilder, ComplexSearchDto complexSearchDto) {
+        NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
+                .withQuery(queryBuilder)
+                .withHighlightBuilder(getHighlightBuilder(complexSearchDto))
+                .withPageable(PageRequest.of(0, 10))
+                .build();
+
+        return elasticsearchRestTemplate.search(searchQuery,
+                        Application.class,
+                        IndexCoordinates.of("staffmate-applications"))
+                .stream()
+                .map(applicationSearchHit -> resultMapper.map(applicationSearchHit, complexSearchDto))
+                .collect(Collectors.toList());
+    }
     private QueryBuilder selectQueryBuilder(SearchFiledDto field){
         if(field.getQuery().startsWith("\"") && field.getQuery().endsWith("\"")){
             return phraseSearch(field);
@@ -74,25 +89,13 @@ public class SearchService {
                 .highlighterType("plain")
                 .preTags("<b>")
                 .postTags("</b>");
-        for(SearchFiledDto field : complexSearchDto.getFields()){
-            builder.field(field.getFieldName());
+        List<String> fieldNames = complexSearchDto.getFields().stream().map(SearchFiledDto::getFieldName).collect(Collectors.toList());
+        List<String> distinctFieldNames = fieldNames.stream().distinct().collect(Collectors.toList());
+        for(String field : distinctFieldNames){
+            builder.field(field);
         }
         return builder;
     }
 
-    private List<ResultDto> getApplications(QueryBuilder queryBuilder, HighlightBuilder highlightBuilder) {
-        NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
-                .withQuery(queryBuilder)
-                .withHighlightBuilder(highlightBuilder)
-                .withPageable(PageRequest.of(0, 10))
-                .build();
 
-
-        return elasticsearchRestTemplate.search(searchQuery,
-                        Application.class,
-                        IndexCoordinates.of("staffmate-applications"))
-                .stream()
-                .map(applicationSearchHit -> new ResultDto(applicationSearchHit.getContent().getFirstname() + " " + applicationSearchHit.getContent().getLastname(), applicationSearchHit.getContent().getCvFilename(), applicationSearchHit.getContent().getLetterFilename(), applicationSearchHit.getHighlightFields()))
-                .collect(Collectors.toList());
-    }
 }
