@@ -8,5 +8,4 @@ public class SearchFiledDto {
     private String query;
     private Boolean isMustContain = false;
     private Boolean isMustNotContain = false;
-    private Boolean isPhrase = false;
 }

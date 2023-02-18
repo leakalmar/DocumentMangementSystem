@@ -2,10 +2,7 @@ package com.staffmate.StaffMateDocumentManagement.services;
 
 import com.staffmate.StaffMateDocumentManagement.content_extractors.ContentExtractor;
 import com.staffmate.StaffMateDocumentManagement.dtos.NewApplication;
-import com.staffmate.StaffMateDocumentManagement.models.Applicant;
 import com.staffmate.StaffMateDocumentManagement.models.Application;
-import com.staffmate.StaffMateDocumentManagement.models.CV;
-import com.staffmate.StaffMateDocumentManagement.models.CoverLetter;
 import com.staffmate.StaffMateDocumentManagement.repositories.ApplicationRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,19 +25,20 @@ public class UploadService {
     FileStorageService storageService;
 
     public void upload(NewApplication newApplication) {
-        Applicant applicant = modelMapper.map(newApplication, Applicant.class);
+        Application application = modelMapper.map(newApplication, Application.class);
         try {
             String cvContent = contentExtractor.extractContent(newApplication.getCv());
-            CV cv = new CV(cvContent);
-
             String letterContent = contentExtractor.extractContent(newApplication.getLetter());
-            CoverLetter coverLetter = new CoverLetter(letterContent);
 
-            Application application = new Application(applicant, cv, coverLetter);
+
+            application.setCvContent(cvContent);
+            application.setLetterContent(letterContent);
+
+            String cvFilename = storageService.save(newApplication.getCv());
+            String letterFilename = storageService.save(newApplication.getLetter());
+            application.setCvFilename(cvFilename);
+            application.setLetterFilename(letterFilename);
             applicationRepository.save(application);
-
-            storageService.save(application.getApplicant().getFirstname(), application.getApplicant().getLastname(), newApplication.getCv());
-            storageService.save(application.getApplicant().getFirstname(), application.getApplicant().getLastname(), newApplication.getLetter());
         } catch (Exception ignored) {
 
         }
@@ -48,6 +46,6 @@ public class UploadService {
     }
 
     public Resource get(String fileName) {
-        return storageService.load("fileName");
+        return storageService.load(fileName);
     }
 }

@@ -6,6 +6,7 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.joda.time.DateTime;
@@ -18,7 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class FileStorageServiceImpl implements FileStorageService {
 
-    private final Path root = Paths.get("uploads");
+    private final Path root = Paths.get("src/main/resources/uploads");
 
     @Override
     public void init() {
@@ -30,9 +31,11 @@ public class FileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
-    public void save(String firstname, String lastname, MultipartFile file) {
+    public String save(MultipartFile file) {
         try {
-            Files.copy(file.getInputStream(), this.root.resolve(firstname + lastname + "-" + DateTime.now().toString()));
+            String filename = DateTime.now().getMillis() + file.getOriginalFilename();
+            Files.copy(file.getInputStream(), this.root.resolve(Objects.requireNonNull(filename)));
+            return filename;
         } catch (Exception e) {
             if (e instanceof FileAlreadyExistsException) {
                 throw new RuntimeException("A file of that name already exists.");

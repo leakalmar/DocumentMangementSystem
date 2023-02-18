@@ -1,8 +1,10 @@
 package com.staffmate.StaffMateDocumentManagement.services;
 
 import com.staffmate.StaffMateDocumentManagement.dtos.ComplexSearchDto;
+import com.staffmate.StaffMateDocumentManagement.dtos.ResultDto;
 import com.staffmate.StaffMateDocumentManagement.dtos.SearchFiledDto;
 import com.staffmate.StaffMateDocumentManagement.models.Application;
+import com.staffmate.StaffMateDocumentManagement.repositories.ApplicationRepository;
 import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -17,6 +19,7 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,8 +28,10 @@ public class SearchService {
 
     @Autowired
     private ElasticsearchOperations elasticsearchOperations;
+    @Autowired
+    private ApplicationRepository applicationRepository;
 
-    public List<Application> search(ComplexSearchDto complexSearchDto) {
+    public List<ResultDto> search(ComplexSearchDto complexSearchDto) {
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
 
         QueryBuilder matchQuery = null;
@@ -43,10 +48,12 @@ public class SearchService {
         return getApplications(queryBuilder, getHighlightBuilder(complexSearchDto));
     }
 
-    private HighlightBuilder getHighlightBuilder(ComplexSearchDto complexSearchDto) {
-        HighlightBuilder builder = new HighlightBuilder();
-        complexSearchDto.getFields().stream().map(filed -> builder.field(filed.getFieldName()));
-        return builder;
+    private QueryBuilder selectQueryBuilder(SearchFiledDto field){
+        if(field.getQuery().startsWith("\"") && field.getQuery().endsWith("\"")){
+            return phraseSearch(field);
+        }else{
+            return simpleSearch(field);
+        }
     }
 
     private QueryBuilder simpleSearch(SearchFiledDto searchFiledDto) {
@@ -56,29 +63,35 @@ public class SearchService {
                 .fuzziness(Fuzziness.AUTO);
     }
 
-    private QueryBuilder selectQueryBuilder(SearchFiledDto field){
-        if(field.getQuery().startsWith("\"") && field.getQuery().endsWith("\"")){
-            return phraseSearch(field);
-        }else{
-            return simpleSearch(field);
-        }
-    }
     private QueryBuilder phraseSearch(SearchFiledDto searchFiledDto) {
-        return QueryBuilders.matchPhraseQuery(searchFiledDto.getQuery().toLowerCase(), searchFiledDto.getFieldName());
+        String query = searchFiledDto.getQuery().trim().substring(1,searchFiledDto.getQuery().trim().length() -1).toLowerCase();
+        return QueryBuilders.matchPhraseQuery(searchFiledDto.getFieldName(), query).slop(1);
     }
 
-    private List<Application> getApplications(QueryBuilder queryBuilder, HighlightBuilder highlightBuilder) {
+    private HighlightBuilder getHighlightBuilder(ComplexSearchDto complexSearchDto) {
+        HighlightBuilder builder = new HighlightBuilder()
+                .highlighterType("plain")
+                .preTags("<strong>")
+                .postTags("</strong>");
+        for(SearchFiledDto field : complexSearchDto.getFields()){
+            builder.field(field.getFieldName());
+        }
+        return builder;
+    }
+
+    private List<ResultDto> getApplications(QueryBuilder queryBuilder, HighlightBuilder highlightBuilder) {
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
                 .withFilter(queryBuilder)
-                .withHighlightBuilder(highlightBuilder)
+                .withHighlightFields(new HighlightBuilder.Field("content"))
                 .withPageable(PageRequest.of(0, 10))
                 .build();
 
+
         return elasticsearchOperations.search(searchQuery,
                         Application.class,
-                        IndexCoordinates.of("staffmate-application"))
+                        IndexCoordinates.of("staffmate-applications"))
                 .stream()
-                .map(SearchHit<Application>::getContent)
+                .map(applicationSearchHit -> new ResultDto(applicationSearchHit.getContent().getFirstname() + " " + applicationSearchHit.getContent().getLastname(), applicationSearchHit.getContent().getCvFilename(), applicationSearchHit.getContent().getLetterFilename(), applicationSearchHit.getHighlightFields()))
                 .collect(Collectors.toList());
     }
 }
