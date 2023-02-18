@@ -1,0 +1,56 @@
+<div class="root">
+
+  <div class="page">
+    <div class="search">
+      <div class="controls">
+        <button mat-raised-button (click)="addSearchParameter()">Novi parametar pretrage</button>
+      </div>
+
+
+      <div class="fields">
+
+        <div *ngFor="let searchParam of searchParameters">
+          <app-search-param [searchParam]=searchParam (delete)="delete($event)"></app-search-param>
+        </div>
+      </div>
+    </div>
+
+<div class="title">
+  <h1>Rezultati pretrage</h1>
+</div>
+    <div class="results">
+
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Company Registration</mat-card-title>
+          <mat-card-subtitle>$20</mat-card-subtitle>
+        </mat-card-header>
+
+
+        <mat-card-actions align="end">
+
+        </mat-card-actions>
+      </mat-card>
+      <mat-card>
+
+        <mat-card-header>
+          <mat-card-title>Premium Employment</mat-card-title>
+          <mat-card-subtitle>$100</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-actions align="end">
+          <button mat-button (click)="onBuy(100, 'ONE_TIME')">Buy</button>
+        </mat-card-actions>
+      </mat-card>
+      <mat-card>
+
+        <mat-card-header>
+          <mat-card-title>Employment Package</mat-card-title>
+          <mat-card-subtitle>$200</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-actions align="end">
+          <button mat-button (click)="onBuy(200, 'ONE_TIME')">Buy</button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+</div>

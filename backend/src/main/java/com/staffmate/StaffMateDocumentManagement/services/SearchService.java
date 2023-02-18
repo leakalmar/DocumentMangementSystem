@@ -13,6 +13,7 @@ import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
@@ -27,7 +28,7 @@ import java.util.stream.Collectors;
 public class SearchService {
 
     @Autowired
-    private ElasticsearchOperations elasticsearchOperations;
+    private ElasticsearchRestTemplate elasticsearchRestTemplate;
     @Autowired
     private ApplicationRepository applicationRepository;
 
@@ -71,8 +72,8 @@ public class SearchService {
     private HighlightBuilder getHighlightBuilder(ComplexSearchDto complexSearchDto) {
         HighlightBuilder builder = new HighlightBuilder()
                 .highlighterType("plain")
-                .preTags("<strong>")
-                .postTags("</strong>");
+                .preTags("<b>")
+                .postTags("</b>");
         for(SearchFiledDto field : complexSearchDto.getFields()){
             builder.field(field.getFieldName());
         }
@@ -81,13 +82,13 @@ public class SearchService {
 
     private List<ResultDto> getApplications(QueryBuilder queryBuilder, HighlightBuilder highlightBuilder) {
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
-                .withFilter(queryBuilder)
-                .withHighlightFields(new HighlightBuilder.Field("content"))
+                .withQuery(queryBuilder)
+                .withHighlightBuilder(highlightBuilder)
                 .withPageable(PageRequest.of(0, 10))
                 .build();
 
 
-        return elasticsearchOperations.search(searchQuery,
+        return elasticsearchRestTemplate.search(searchQuery,
                         Application.class,
                         IndexCoordinates.of("staffmate-applications"))
                 .stream()

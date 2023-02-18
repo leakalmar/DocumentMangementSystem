@@ -1,0 +1,31 @@
+<div class="search-field">
+  <mat-form-field appearance="fill">
+    <mat-label>Polja za pretragu</mat-label>
+    <mat-select [value]="searchParam.fieldName" [formControl]="selectedField"
+                (selectionChange)="searchParam.fieldName = selectedField.value">
+      <mat-option value="">Odaberi</mat-option>
+      <mat-option value="firstname">Ime</mat-option>
+      <mat-option value="lastname">Prezime</mat-option>
+      <mat-option value="education">Obrazovanje</mat-option>
+      <mat-option value="cvContent">Sadržaj CV</mat-option>
+      <mat-option value="letterContent">Sadržaj propratnog pisma</mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field appearance="fill">
+    <mat-label>Tekst</mat-label>
+    <input matInput [value]="searchParam.query" [formControl]="queryInput"
+           (keyup)="searchParam.query = queryInput.value">
+  </mat-form-field>
+  <div class="checkboxes">
+    <mat-checkbox [checked]="searchParam.isMustContain"
+                  (change)="searchParam.isMustContain = !searchParam.isMustContain">Mora sadržati
+    </mat-checkbox>
+    <mat-checkbox [checked]="searchParam.isMustNotContain"
+                  (change)="searchParam.isMustContain = !searchParam.isMustContain">Ne sme sadržati
+    </mat-checkbox>
+  </div>
+  <button mat-icon-button style="flex: 0.1" (click)="delete.emit(searchParam.id)">
+    <mat-icon>delete</mat-icon>
+  </button>
+
+</div>
