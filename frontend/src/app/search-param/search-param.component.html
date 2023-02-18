@@ -17,11 +17,11 @@
            (keyup)="searchParam.query = queryInput.value">
   </mat-form-field>
   <div class="checkboxes">
-    <mat-checkbox [checked]="searchParam.isMustContain"
-                  (change)="searchParam.isMustContain = !searchParam.isMustContain">Mora sadržati
+    <mat-checkbox [checked]="searchParam.isMustContain" [formControl]="isMustContain"  id="ch2"
+                  >Mora sadržati
     </mat-checkbox>
-    <mat-checkbox [checked]="searchParam.isMustNotContain"
-                  (change)="searchParam.isMustContain = !searchParam.isMustContain">Ne sme sadržati
+    <mat-checkbox [checked]="searchParam.isMustNotContain" [formControl]="isMustNotContain"
+                   id="ch1">Ne sme sadržati
     </mat-checkbox>
   </div>
   <button mat-icon-button style="flex: 0.1" (click)="delete.emit(searchParam.id)">

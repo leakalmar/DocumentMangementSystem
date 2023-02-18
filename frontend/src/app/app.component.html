@@ -10,7 +10,7 @@
       <div class="fields">
 
         <div *ngFor="let searchParam of searchParameters">
-          <app-search-param [searchParam]=searchParam (delete)="delete($event)"></app-search-param>
+          <app-search-param [searchParam]=searchParam (delete)="delete($event)" (change)="onParamChange($event)"></app-search-param>
         </div>
       </div>
     </div>
@@ -19,38 +19,10 @@
   <h1>Rezultati pretrage</h1>
 </div>
     <div class="results">
+      <div class="document" *ngFor="let application of applications">
 
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>Company Registration</mat-card-title>
-          <mat-card-subtitle>$20</mat-card-subtitle>
-        </mat-card-header>
-
-
-        <mat-card-actions align="end">
-
-        </mat-card-actions>
-      </mat-card>
-      <mat-card>
-
-        <mat-card-header>
-          <mat-card-title>Premium Employment</mat-card-title>
-          <mat-card-subtitle>$100</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-actions align="end">
-          <button mat-button (click)="onBuy(100, 'ONE_TIME')">Buy</button>
-        </mat-card-actions>
-      </mat-card>
-      <mat-card>
-
-        <mat-card-header>
-          <mat-card-title>Employment Package</mat-card-title>
-          <mat-card-subtitle>$200</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-actions align="end">
-          <button mat-button (click)="onBuy(200, 'ONE_TIME')">Buy</button>
-        </mat-card-actions>
-      </mat-card>
+        <app-document-container [application]="application"></app-document-container>
+      </div>
     </div>
   </div>
 </div>

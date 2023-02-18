@@ -18,12 +18,14 @@ import {MatSelectModule} from "@angular/material/select";
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import {MatIconModule} from "@angular/material/icon";
 import { SearchParamComponent } from './search-param/search-param.component';
+import { DocumentContainerComponent } from './document-container/document-container.component';
 
 
 @NgModule({
   declarations: [
     AppComponent,
-    SearchParamComponent
+    SearchParamComponent,
+    DocumentContainerComponent
   ],
   imports: [
     BrowserModule,

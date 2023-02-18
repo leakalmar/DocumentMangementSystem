@@ -4,6 +4,8 @@ import {HttpClient} from "@angular/common/http";
 import {Router} from "@angular/router";
 import {MatSnackBar} from "@angular/material/snack-bar";
 import {SearchParameterModel} from "./model/searchParameter.model";
+import {ApplicationModel} from "./model/application.model";
+import {HttpService} from "./service/http.service";
 
 @Component({
   selector: 'app-root',
@@ -20,22 +22,10 @@ export class AppComponent {
     isMustContain: false,
     isMustNotContain: false
   }];
-  selectedField: FormControl = new FormControl<string>('');
-  query: FormControl = new FormControl<string>('');
-  mustContain: FormControl = new FormControl<boolean>(false);
-  mustNotContain: FormControl = new FormControl<boolean>(false);
+  applications!: Array<ApplicationModel>;
 
-  constructor(private http: HttpClient, private router: Router, private _snackBar: MatSnackBar) {
-  }
 
-  onBuy(amount: number, billingCycle: string) {
-    // if(this.apiKey.value){
-    //   this.http.post("http://192.168.43.124:9000/auth-service/payment-attempts/", {apiKey: this.apiKey.value ,amount: amount, billingCycle: billingCycle}, { responseType: 'text' as const}).subscribe(response =>{
-    //     window.location.href = response;
-    //   })
-    // }else{
-    //   this._snackBar.open("Please fill out your API Key!", "",{duration: 2000})
-    // }
+  constructor(private http: HttpClient, private router: Router, private _snackBar: MatSnackBar, private httpService: HttpService) {
   }
 
   addSearchParameter() {
@@ -55,6 +45,23 @@ export class AppComponent {
       this.searchParameters[0].fieldName = ''
       this.searchParameters[0].query = ''
     }
+    this.httpService.sendSearchRequest(this.searchParameters).subscribe((response) => {
+      this.applications = response;
+    });
 
   }
+
+  onParamChange($event: SearchParameterModel) {
+    this.searchParameters.forEach((value,index)=>{
+      if(value.id == $event.id){
+        this.searchParameters[index] = $event
+
+      }
+    })
+    this.httpService.sendSearchRequest(this.searchParameters).subscribe((response) => {
+      this.applications = response;
+    });
+  }
+
+
 }
