@@ -1,5 +1,10 @@
 <div class="root">
-
+  <div class="title">
+    <h1 style="font-size: 40px;
+    color: rgb(177 204 231);
+    margin: 0;
+    margin-top: 3rem;">Platforma za pretragu dokumenata</h1>
+  </div>
   <div class="page">
     <div class="search">
       <div class="controls">
@@ -21,6 +26,9 @@
   <h1>Rezultati pretrage</h1>
 </div>
     <div class="results">
+      <div style="color: #5c558d;
+    font-size: 23px;
+    text-align: center;" *ngIf="applications == undefined || applications?.length == 0"><p>Trenutno nema rezultata za dati upit. Pokušajte da proširite pretragu kako bi dobili bolje rezultate.</p></div>
       <div class="document" *ngFor="let application of applications">
 
         <app-document-container [application]="application"></app-document-container>
