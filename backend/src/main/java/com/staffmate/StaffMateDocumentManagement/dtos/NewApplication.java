@@ -5,9 +5,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Data
 public class NewApplication {
-    private String firstname;
+    private String name;
 
-    private String lastname;
+    private String surname;
 
     private String email;
 

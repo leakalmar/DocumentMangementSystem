@@ -4,10 +4,12 @@
     <div class="search">
       <div class="controls">
         <button mat-raised-button (click)="addSearchParameter()">Novi parametar pretrage</button>
+        <button mat-raised-button (click)="isGeolocationEnabled = !isGeolocationEnabled" [disabled]="isGeolocationEnabled">Geolokacion parametar pretrage</button>
       </div>
 
 
       <div class="fields">
+        <app-search-param-geolocation [searchParam]=geoSearchParam (delete)="deleteGeo()" (change)="onGeoParamChange($event)" *ngIf="isGeolocationEnabled"></app-search-param-geolocation>
 
         <div *ngFor="let searchParam of searchParameters">
           <app-search-param [searchParam]=searchParam (delete)="delete($event)" (change)="onParamChange($event)"></app-search-param>

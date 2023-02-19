@@ -1,0 +1,23 @@
+<div class="search-field">
+  <mat-form-field appearance="fill">
+    <mat-label>Polja za pretragu</mat-label>
+    <mat-select  [disabled]="true" [value]="'geo'">
+      <mat-option [value]="'geo'">Geolokacija</mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field appearance="fill">
+    <mat-label>Grad</mat-label>
+    <input matInput [value]="searchParam.city" [formControl]="cityInput"
+           (keyup)="searchParam.city = cityInput.value">
+  </mat-form-field>
+  <mat-form-field appearance="fill">
+    <mat-label>Radius u km</mat-label>
+    <input matInput [value]="searchParam.radius.toString()" [formControl]="radiusInput" type="number"
+           (keyup)="searchParam.radius = radiusInput.value">
+  </mat-form-field>
+
+  <button mat-icon-button style="flex: 0.1" (click)="delete.emit()">
+    <mat-icon>delete</mat-icon>
+  </button>
+
+</div>

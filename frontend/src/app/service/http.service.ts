@@ -3,6 +3,7 @@ import {Injectable} from "@angular/core";
 import {ApplicationModel} from "../model/application.model";
 import {SearchParameterModel} from "../model/searchParameter.model";
 import {map} from "rxjs";
+import {GeolocationSearchParamModel} from "../model/geolocationSearchParam.model";
 @Injectable({
   providedIn: 'root',
 })
@@ -11,8 +12,16 @@ export class HttpService{
 
   constructor(private http: HttpClient) {
   }
-  public sendSearchRequest(searchParameters: Array<SearchParameterModel>) {
-    return this.http.post<Array<ApplicationModel>>("http://localhost:9000/search", {fields: searchParameters});
+  public sendSearchRequest(searchParameters: Array<SearchParameterModel>, geoloc: GeolocationSearchParamModel | null) {
+    let request :any = {fields: searchParameters, geolocationField: geoloc};
+    if(geoloc == null){
+      request = {fields: searchParameters};
+    }
+    if(searchParameters.length == 1 && searchParameters[0].query== "") {
+      request.fields = []
+    }
+    return this.http.post<Array<ApplicationModel>>("http://localhost:9000/search", request);
+
   }
 
   public downloadRequest(fileName: string){

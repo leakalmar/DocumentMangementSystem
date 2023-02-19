@@ -1,16 +1,24 @@
 package com.staffmate.StaffMateDocumentManagement.services;
 
 import com.staffmate.StaffMateDocumentManagement.dtos.ComplexSearchDto;
+import com.staffmate.StaffMateDocumentManagement.dtos.GeolocationSearchDto;
 import com.staffmate.StaffMateDocumentManagement.dtos.ResultDto;
 import com.staffmate.StaffMateDocumentManagement.dtos.SearchFiledDto;
 import com.staffmate.StaffMateDocumentManagement.mappers.ResultMapper;
 import com.staffmate.StaffMateDocumentManagement.models.Application;
 import com.staffmate.StaffMateDocumentManagement.repositories.ApplicationRepository;
+import org.elasticsearch.common.geo.GeoPoint;
+import org.elasticsearch.common.unit.DistanceUnit;
 import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.GeoDistanceQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.elasticsearch.search.sort.GeoDistanceSortBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
@@ -21,6 +29,7 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,9 +40,11 @@ public class SearchService {
     @Autowired
     private ElasticsearchRestTemplate elasticsearchRestTemplate;
     @Autowired
+    private GeolocationService geolocationService;
+    @Autowired
     private ResultMapper resultMapper;
 
-    public List<ResultDto> search(ComplexSearchDto complexSearchDto) {
+    public List<ResultDto> search(ComplexSearchDto complexSearchDto) throws IOException {
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
 
         QueryBuilder matchQuery = null;
@@ -47,10 +58,15 @@ public class SearchService {
                 queryBuilder.should(matchQuery);
             }
         }
+        if(complexSearchDto.getGeolocationField() != null){
+            QueryBuilder geodistanceQuery = geolocationSearch(complexSearchDto.getGeolocationField());
+            queryBuilder.must(geodistanceQuery);
+        }
         return getApplications(queryBuilder, complexSearchDto);
     }
 
-    private List<ResultDto> getApplications(QueryBuilder queryBuilder, ComplexSearchDto complexSearchDto) {
+    private List<ResultDto> getApplications(QueryBuilder queryBuilder, ComplexSearchDto complexSearchDto) throws IOException {
+
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
                 .withQuery(queryBuilder)
                 .withHighlightBuilder(getHighlightBuilder(complexSearchDto))
@@ -64,6 +80,14 @@ public class SearchService {
                 .map(applicationSearchHit -> resultMapper.map(applicationSearchHit, complexSearchDto))
                 .collect(Collectors.toList());
     }
+
+    public QueryBuilder geolocationSearch(GeolocationSearchDto geolocationSearchDto) throws IOException {
+        GeoPoint geoPoint = geolocationService.getCityCoordinates(geolocationSearchDto.getCity());
+
+        return QueryBuilders.geoDistanceQuery("location").point(geoPoint.getLat(),geoPoint.getLon())
+                .distance(geolocationSearchDto.getRadius(), DistanceUnit.KILOMETERS);
+    }
+
     private QueryBuilder selectQueryBuilder(SearchFiledDto field){
         if(field.getQuery().startsWith("\"") && field.getQuery().endsWith("\"")){
             return phraseSearch(field);
@@ -96,6 +120,4 @@ public class SearchService {
         }
         return builder;
     }
-
-
 }

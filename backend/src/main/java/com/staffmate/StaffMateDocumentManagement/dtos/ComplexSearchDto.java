@@ -7,4 +7,6 @@ import java.util.List;
 @Data
 public class ComplexSearchDto {
     private List<SearchFiledDto> fields;
+
+    private GeolocationSearchDto geolocationField;
 }

@@ -25,7 +25,11 @@ public class FileController {
 
     @PostMapping(value = "upload")
     public ResponseEntity<?> uploadApplication(@ModelAttribute NewApplication newApplication) {
-        uploadService.upload(newApplication);
+        try {
+            uploadService.upload(newApplication);
+        }catch (Exception e){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
 
         return new ResponseEntity<>(HttpStatus.OK);
     }

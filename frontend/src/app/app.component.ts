@@ -6,6 +6,7 @@ import {MatSnackBar} from "@angular/material/snack-bar";
 import {SearchParameterModel} from "./model/searchParameter.model";
 import {ApplicationModel} from "./model/application.model";
 import {HttpService} from "./service/http.service";
+import {GeolocationSearchParamModel} from "./model/geolocationSearchParam.model";
 
 @Component({
   selector: 'app-root',
@@ -23,9 +24,12 @@ export class AppComponent {
     isMustNotContain: false
   }];
   applications!: Array<ApplicationModel>;
+  geoSearchParam!: GeolocationSearchParamModel;
+  isGeolocationEnabled: boolean = false;
 
 
   constructor(private http: HttpClient, private router: Router, private _snackBar: MatSnackBar, private httpService: HttpService) {
+    this.geoSearchParam = new GeolocationSearchParamModel("",0);
   }
 
   addSearchParameter() {
@@ -45,7 +49,11 @@ export class AppComponent {
       this.searchParameters[0].fieldName = ''
       this.searchParameters[0].query = ''
     }
-    this.httpService.sendSearchRequest(this.searchParameters).subscribe((response) => {
+    let geoloc = null;
+    if(this.isGeolocationEnabled){
+      geoloc = this.geoSearchParam;
+    }
+    this.httpService.sendSearchRequest(this.searchParameters, geoloc).subscribe((response) => {
       this.applications = response;
     });
 
@@ -58,10 +66,28 @@ export class AppComponent {
 
       }
     })
-    this.httpService.sendSearchRequest(this.searchParameters).subscribe((response) => {
+    let geoloc = null;
+    if(this.isGeolocationEnabled){
+      geoloc = this.geoSearchParam;
+    }
+    this.httpService.sendSearchRequest(this.searchParameters, geoloc).subscribe((response) => {
       this.applications = response;
     });
   }
 
 
+  deleteGeo() {
+    this.geoSearchParam.radius = 0;
+    this.geoSearchParam.city = '';
+    this.isGeolocationEnabled = false;
+    this.httpService.sendSearchRequest(this.searchParameters, null).subscribe((response) => {
+      this.applications = response;
+    });
+  }
+
+  onGeoParamChange($event: GeolocationSearchParamModel) {
+    this.httpService.sendSearchRequest(this.searchParameters, $event).subscribe((response) => {
+      this.applications = response;
+    });
+  }
 }

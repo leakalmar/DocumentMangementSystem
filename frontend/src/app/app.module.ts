@@ -19,13 +19,15 @@ import {MatCheckboxModule} from "@angular/material/checkbox";
 import {MatIconModule} from "@angular/material/icon";
 import { SearchParamComponent } from './search-param/search-param.component';
 import { DocumentContainerComponent } from './document-container/document-container.component';
+import { SearchParamGeolocationComponent } from './search-param-geolocation/search-param-geolocation.component';
 
 
 @NgModule({
   declarations: [
     AppComponent,
     SearchParamComponent,
-    DocumentContainerComponent
+    DocumentContainerComponent,
+    SearchParamGeolocationComponent
   ],
   imports: [
     BrowserModule,

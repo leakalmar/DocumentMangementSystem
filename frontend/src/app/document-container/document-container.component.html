@@ -2,22 +2,22 @@
   <div class="card-content">
 
     <div class="card-header">
-      <div class="card-header-title" [innerHTML]="appplication.firstname + ' ' + appplication.lastname"></div>
+      <div class="card-header-title" [innerHTML]="appplication.name + ' ' + appplication.surname"></div>
       <div class="card-header-subtitle" [innerHTML]="appplication.education"></div>
     </div>
     <div class="card-contacts">
 
       <p [innerHTML]="appplication.address"
-         *ngIf="appplication.cvContent == '' && appplication.letterContent == ''"></p>
-      <p [innerHTML]="appplication.phone" *ngIf="appplication.cvContent == '' && appplication.letterContent == ''"></p>
-      <p [innerHTML]="appplication.email" *ngIf="appplication.cvContent == '' && appplication.letterContent == ''"></p>
+         *ngIf="appplication.cvContent == '' && appplication.coverLetterContent == ''"></p>
+      <p [innerHTML]="appplication.phone" *ngIf="appplication.cvContent == '' && appplication.coverLetterContent == ''"></p>
+      <p [innerHTML]="appplication.email" *ngIf="appplication.cvContent == '' && appplication.coverLetterContent == ''"></p>
       <div *ngIf="appplication.cvContent != ''">
         <p><b>CV:</b></p>
         <p [innerHTML]="appplication.cvContent"></p>
       </div>
-      <div *ngIf="appplication.letterContent != ''">
+      <div *ngIf="appplication.coverLetterContent != ''">
         <p><b>Propratno pismo:</b></p>
-        <p [innerHTML]="appplication.letterContent"></p>
+        <p [innerHTML]="appplication.coverLetterContent"></p>
       </div>
 
     </div>
@@ -27,7 +27,7 @@
     <button mat-raised-button (click)="onDownload(appplication.cvFilename)">CV
       <mat-icon>download</mat-icon>
     </button>
-    <button mat-raised-button (click)="onDownload(appplication.letterFilename)">Propratno pismo
+    <button mat-raised-button (click)="onDownload(appplication.coverLetterFilename)">Propratno pismo
       <mat-icon>download</mat-icon>
     </button>
   </div>

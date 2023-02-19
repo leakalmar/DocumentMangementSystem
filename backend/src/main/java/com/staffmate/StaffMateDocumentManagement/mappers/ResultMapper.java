@@ -21,7 +21,10 @@ public class ResultMapper {
     private ModelMapper modelMapper;
 
     public ResultDto map(SearchHit<Application> applicationSearchHit, ComplexSearchDto complexSearchDto){
-        List<String> searchFieldNames = complexSearchDto.getFields().stream().map(SearchFiledDto::getFieldName).collect(Collectors.toList());
+        List<String> searchFieldNames = new ArrayList<>();
+        if(complexSearchDto != null){
+            searchFieldNames = complexSearchDto.getFields().stream().map(SearchFiledDto::getFieldName).collect(Collectors.toList());
+        }
 
         Application application = applicationSearchHit.getContent();
 
@@ -31,8 +34,8 @@ public class ResultMapper {
             resultDto.setCvContent("");
         }
 
-        if(!searchFieldNames.contains("letterContent")){
-            resultDto.setLetterContent("");
+        if(!searchFieldNames.contains("coverLetterContent")){
+            resultDto.setCoverLetterContent("");
         }
 
         for(Map.Entry<String, List<String>> entry : applicationSearchHit.getHighlightFields().entrySet()){
@@ -43,8 +46,8 @@ public class ResultMapper {
 
     private ResultDto changeResultValue(Map.Entry<String, List<String>> entry, ResultDto resultDto){
         switch (entry.getKey()){
-            case "firstname": resultDto.setFirstname(entry.getValue().get(0));break;
-            case "lastname": resultDto.setLastname(entry.getValue().get(0));break;
+            case "name": resultDto.setName(entry.getValue().get(0));break;
+            case "surname": resultDto.setSurname(entry.getValue().get(0));break;
             case "education": resultDto.setEducation(entry.getValue().get(0));break;
             case "cvContent":
                 if(entry.getValue().size() > 1){
@@ -53,11 +56,11 @@ public class ResultMapper {
                     resultDto.setCvContent("..." + entry.getValue().get(0));
                 }
                 break;
-            case "letterContent":
+            case "coverLetterContent":
                 if(entry.getValue().size() > 1){
-                    resultDto.setLetterContent("..." + entry.getValue().get(0) + "..." + entry.getValue().get(1) + "...");
+                    resultDto.setCoverLetterContent("..." + entry.getValue().get(0) + "..." + entry.getValue().get(1) + "...");
                 }else{
-                    resultDto.setLetterContent("..." + entry.getValue().get(0) + "...");
+                    resultDto.setCoverLetterContent("..." + entry.getValue().get(0) + "...");
                 }
                 break;
             default: break;
